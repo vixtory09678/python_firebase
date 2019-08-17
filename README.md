@@ -1,6 +1,6 @@
 # Example : Get data from firebase and plot stack bar chart
 
-![example bar chart](https://github.com/vixtory09678/python_firebase/master/img/img.png)
+![example bar chart](https://github.com/vixtory09678/python_firebase/blob/master/img/img.PNG)
 
 ### require install python-firebase
 
