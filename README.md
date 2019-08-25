@@ -47,7 +47,7 @@ stackedBarChart()
 #lineChart()
 ```
 
-###lineChart() Function
+## lineChart() Function
 
 ```Python
 def lineChart():
