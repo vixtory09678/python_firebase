@@ -119,7 +119,7 @@ def stackedBarChart():
 
 ---
 
-1. Import library
+## 1. Import library
 
 ```
 import matplotlib.pyplot as plt
@@ -130,7 +130,7 @@ from firebase import firebase
 import json
 ```
 
-2. Connect to Firebase HOST
+## 2. Connect to Firebase HOST
 
 ```python
 if __name__ == "__main__":
@@ -139,7 +139,7 @@ if __name__ == "__main__":
         'https://rfid-c0802.firebaseio.com', None)
 ```
 
-3. Call function
+## 3. Call function
 
 ```python
 stackedBarChart()
