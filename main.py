@@ -1,94 +1,104 @@
 import matplotlib.pyplot as plt
+import matplotlib.dates as dates
+import pandas as pd
 import numpy as np
 from firebase import firebase
 import json
 
 
-def getDataFirebase(url):
-    keys = []
-    result = firebase.get(url, None)
-    for key in result.keys():
-        keys.append(key)
+def stackedBarChart():
+    # ดึงข้อมูลจาก Firebase โดยเลือกข้อมูลจาก path 'waste/'
+    result = firebase.get('waste/', None)
+    # ข้อมูลจะอยู่ในรูปของ json object
+    """
+    result = {
+        key : {
+            date : ""
+            bio : ""
+            recycle : ""
+            non-recycle : ""
+            ...
+        }
+    }
+    """
 
-    return (result, keys)
+    y = json.dumps(result)
+    # แปลงข้อมูลของ result ที่เป็น json object ให้อยู่ในรูปของ json string
+    # y = "{key : {date : "",bio : "",recycle : "",non-recycle : ""}}"
 
+    df = pd.read_json(y)
+    # แปลง json string ให้อยู่ในรูปของ data frame เพื่อเอามาใช้ plot graph
 
-def getElementNode(result):
-    keys = []
-    for key in result.keys():
-        keys.append(key)
-    return (result, keys)
+    # print(df)
+    df = df.T  # transpose data frame (สลับ row กับ column)
+    df.set_index('date', inplace=True)  # set column แรก ให้เป็น date
 
+    # ดึงข้อมูลเฉพาะ zone = A
+    zoneA = df.loc[df['zone'] == 'A', [
+        'recycle', 'non-recycle', 'biodegradable']]
+    # ดึงข้อมูลเฉพาะ zone = B
+    zoneB = df.loc[df['zone'] == 'B', [
+        'recycle', 'non-recycle', 'biodegradable']]
+    # ดึงข้อมูลเฉพาะ zone = C
+    zoneC = df.loc[df['zone'] == 'C', [
+        'recycle', 'non-recycle', 'biodegradable']]
 
-# connect to firebase host
-firebase = firebase.FirebaseApplication(
-    'https://rfid-c0802.firebaseio.com', None)
-
-# create variable list
-totalWeightRecycle = []
-totalWeightNonRecycle = []
-totalWeightBio = []
-
-# get data from path
-# return result and keys of path
-(result, keys) = getDataFirebase('/waste')
-
-"""
-# print result should be
-{
-    "56a1aefba2":{blabla},
-    "47dce83340":{blabla},
-    "b6c9b0fb34":{blabla},
-    "87d3ee3389":{blabla}
-}
-# print keys should be
-["56a1aefba2", "47dce83340", "b6c9b0fb34", "87d3ee3389"]
-
-So, if you want to access data in result with key
-result["56a1aefba2"]
-"""
-
-# below will show you how to access data in result variable
-for key in keys:
-    # access result[key]
-    (node, keysNode) = getElementNode(result[key])
-
-    sumRecycle = 0
-    sumNonRecycle = 0
-    sumBio = 0
-
-    # access result[key][keyNode]["recycle"]
-    # access result[key][keyNode]["non-recycle"]
-    # access result[key][keyNode]["biodegradable"]
-    # key is id truck
-    # keyNode is key of data
-    for keyNode in keysNode:
-        sumRecycle = sumRecycle + node[keyNode]["recycle"]
-        sumNonRecycle = sumNonRecycle + node[keyNode]["non-recycle"]
-        sumBio = sumBio + node[keyNode]["biodegradable"]
-
-    totalWeightRecycle.append(sumRecycle)
-    totalWeightNonRecycle.append(sumNonRecycle)
-    totalWeightBio.append(sumBio)
+    # plot graph โดยดึงข้อมูลเฉพาะของ ['recycle', 'non-recycle', 'biodegradable']
+    zoneA.loc[:, ['recycle', 'non-recycle', 'biodegradable']].plot(
+        kind='bar', title='Zone A', stacked=True, figsize=(10, 7))
+    zoneB.loc[:, ['recycle', 'non-recycle', 'biodegradable']].plot(
+        kind='bar', title='Zone B', stacked=True, figsize=(10, 7))
+    zoneC.loc[:, ['recycle', 'non-recycle', 'biodegradable']].plot(
+        kind='bar', title='Zone C', stacked=True, figsize=(10, 7))
+    plt.show()
 
 
-# plot graph
-N = len(totalWeightRecycle)
-ind = np.arange(N)    # the x locations for the groups
-width = 0.35       # the width of the bars: can also be len(x) sequence
+def lineChart():
+    # ดึงข้อมูลจาก Firebase โดยเลือกข้อมูลจาก path 'waste/'
+    result = firebase.get('waste/', None)
+    # ข้อมูลจะอยู่ในรูปของ json object
+    """
+    result = {
+        key : {
+            date : ""
+            bio : ""
+            recycle : ""
+            non-recycle : ""
+            ...
+        }
+    }
+    """
 
-dataset1 = np.array(totalWeightRecycle)
-dataset2 = np.array(totalWeightNonRecycle)
-dataset3 = np.array(totalWeightBio)
+    y = json.dumps(result)
+    # แปลงข้อมูลของ result ที่เป็น json object ให้อยู่ในรูปของ json string
+    # y = "{key : {date : "",bio : "",recycle : "",non-recycle : ""}}"
 
-p1 = plt.bar(ind, dataset1, width, color='g')
-p2 = plt.bar(ind, dataset2, width, bottom=dataset1, color='b')
-p3 = plt.bar(ind, dataset3, width, bottom=dataset1+dataset2, color='r')
+    df = pd.read_json(y)
+    # แปลง json string ให้อยู่ในรูปของ data frame เพื่อเอามาใช้ plot graph
 
-plt.ylabel('Kg.')
-plt.title('Total weight')
-plt.xticks(ind, keys)
-# plt.yticks(np.arange(0, 81, 10))
-plt.legend((p1[0], p2[0], p3[0]), ('Recycle', 'Non-Recycle', 'Biodegradable'))
+    # print(df)
+    df = df.T  # transpose data frame (สลับ row กับ column)
+    df.set_index('date', inplace=True)  # set column แรก ให้เป็น date
 
-plt.show()
+    zoneA = df.loc[df['zone'] == 'A']  # ดึงข้อมูลเฉพาะ zone = A
+    zoneB = df.loc[df['zone'] == 'B']  # ดึงข้อมูลเฉพาะ zone = B
+    zoneC = df.loc[df['zone'] == 'C']  # ดึงข้อมูลเฉพาะ zone = C
+
+    # plot graph
+    zoneA.plot(kind='line', title="Total weight zone A")
+    plt.xticks(rotation='vertical')
+
+    zoneB.plot(kind='line', title="Total weight zone B")
+    plt.xticks(rotation='vertical')
+
+    zoneC.plot(kind='line', title="Total weight zone C")
+    plt.xticks(rotation='vertical')
+    plt.show()
+
+
+if __name__ == "__main__":
+    # connect to firebase host
+    firebase = firebase.FirebaseApplication(
+        'https://rfid-c0802.firebaseio.com', None)
+
+    stackedBarChart()
