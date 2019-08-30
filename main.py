@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-import matplotlib.dates as dates
+import matplotlib.dates as mdates
 import pandas as pd
 import numpy as np
 from firebase import firebase
@@ -7,92 +7,67 @@ import json
 
 
 def stackedBarChart():
-    # ดึงข้อมูลจาก Firebase โดยเลือกข้อมูลจาก path 'waste/'
+
     result = firebase.get('waste/', None)
-    # ข้อมูลจะอยู่ในรูปของ json object
-    """
-    result = {
-        key : {
-            date : ""
-            bio : ""
-            recycle : ""
-            non-recycle : ""
-            ...
-        }
-    }
-    """
-
     y = json.dumps(result)
-    # แปลงข้อมูลของ result ที่เป็น json object ให้อยู่ในรูปของ json string
-    # y = "{key : {date : "",bio : "",recycle : "",non-recycle : ""}}"
-
     df = pd.read_json(y)
-    # แปลง json string ให้อยู่ในรูปของ data frame เพื่อเอามาใช้ plot graph
+    df = df.T
+    df.set_index('date', inplace=True)
 
-    # print(df)
-    df = df.T  # transpose data frame (สลับ row กับ column)
-    df.set_index('date', inplace=True)  # set column แรก ให้เป็น date
+    truck1 = df.loc[df['id'] == 'b6c9b0fb34', [
+        'recycle', 'non-recycle', 'biodegradable']].sum()
+    truck2 = df.loc[df['id'] == '56a1aefba2', [
+        'recycle', 'non-recycle', 'biodegradable']].sum()
+    truck3 = df.loc[df['id'] == '47dce83340', [
+        'recycle', 'non-recycle', 'biodegradable']].sum()
+    truck4 = df.loc[df['id'] == '972bf0337f', [
+        'recycle', 'non-recycle', 'biodegradable']].sum()
+    truck5 = df.loc[df['id'] == '87d3ee3389', [
+        'recycle', 'non-recycle', 'biodegradable']].sum()
 
-    # ดึงข้อมูลเฉพาะ zone = A
-    zoneA = df.loc[df['zone'] == 'A', [
-        'recycle', 'non-recycle', 'biodegradable']]
-    # ดึงข้อมูลเฉพาะ zone = B
-    zoneB = df.loc[df['zone'] == 'B', [
-        'recycle', 'non-recycle', 'biodegradable']]
-    # ดึงข้อมูลเฉพาะ zone = C
-    zoneC = df.loc[df['zone'] == 'C', [
-        'recycle', 'non-recycle', 'biodegradable']]
-
-    # plot graph โดยดึงข้อมูลเฉพาะของ ['recycle', 'non-recycle', 'biodegradable']
-    zoneA.loc[:, ['recycle', 'non-recycle', 'biodegradable']].plot(
-        kind='bar', title='Zone A', stacked=True, figsize=(10, 7))
-    zoneB.loc[:, ['recycle', 'non-recycle', 'biodegradable']].plot(
-        kind='bar', title='Zone B', stacked=True, figsize=(10, 7))
-    zoneC.loc[:, ['recycle', 'non-recycle', 'biodegradable']].plot(
-        kind='bar', title='Zone C', stacked=True, figsize=(10, 7))
+    truckChart = pd.DataFrame({
+        'Truck 1': truck1,
+        'Truck 2': truck2,
+        'Truck 3': truck3,
+        'Truck 4': truck4,
+        'Truck 5': truck5
+    })
+    truckChart = truckChart.T
+    print(truckChart)
+    truckChart.plot(kind='bar', stacked=True, figsize=(10, 7))
+    plt.xticks(rotation='horizontal')
     plt.show()
 
 
 def lineChart():
-    # ดึงข้อมูลจาก Firebase โดยเลือกข้อมูลจาก path 'waste/'
+
     result = firebase.get('waste/', None)
-    # ข้อมูลจะอยู่ในรูปของ json object
-    """
-    result = {
-        key : {
-            date : ""
-            bio : ""
-            recycle : ""
-            non-recycle : ""
-            ...
-        }
-    }
-    """
 
     y = json.dumps(result)
-    # แปลงข้อมูลของ result ที่เป็น json object ให้อยู่ในรูปของ json string
-    # y = "{key : {date : "",bio : "",recycle : "",non-recycle : ""}}"
-
     df = pd.read_json(y)
-    # แปลง json string ให้อยู่ในรูปของ data frame เพื่อเอามาใช้ plot graph
-
     # print(df)
-    df = df.T  # transpose data frame (สลับ row กับ column)
-    df.set_index('date', inplace=True)  # set column แรก ให้เป็น date
+    df = df.T
 
-    zoneA = df.loc[df['zone'] == 'A']  # ดึงข้อมูลเฉพาะ zone = A
-    zoneB = df.loc[df['zone'] == 'B']  # ดึงข้อมูลเฉพาะ zone = B
-    zoneC = df.loc[df['zone'] == 'C']  # ดึงข้อมูลเฉพาะ zone = C
+    df.set_index('date', inplace=True)
 
-    # plot graph
-    zoneA.plot(kind='line', title="Total weight zone A")
-    plt.xticks(rotation='vertical')
+    zoneA = df.loc[df['zone'] == 'A']
+    zoneB = df.loc[df['zone'] == 'B']
+    zoneC = df.loc[df['zone'] == 'C']
 
-    zoneB.plot(kind='line', title="Total weight zone B")
-    plt.xticks(rotation='vertical')
+    ax1 = plt.subplot(311)
+    plt.setp(ax1.get_xticklabels(), fontsize=6)
+    plt.ylabel('Weight zone A')
+    zoneA.plot(kind="line", ax=ax1)
 
-    zoneC.plot(kind='line', title="Total weight zone C")
-    plt.xticks(rotation='vertical')
+    ax2 = plt.subplot(312)
+    plt.setp(ax2.get_xticklabels(), fontsize=6)
+    plt.ylabel('Weight zone B')
+    zoneB.plot(kind="line", ax=ax2)
+
+    ax3 = plt.subplot(313)
+    plt.setp(ax3.get_xticklabels(), fontsize=6)
+    plt.ylabel('Weight zone C')
+    zoneC.plot(kind="line", ax=ax3)
     plt.show()
 
 
